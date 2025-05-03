@@ -41,4 +41,21 @@ describe("Book API", () => {
       expect(res.status).to.equal(201);
     });
   });
+
+  describe("GET /", () => {
+    it("should get all books", async () => {
+      const book = new Book({
+        title: "1984",
+        author: "George Orwell",
+        publishedYear: 1949,
+        genre: "Fiction",
+        available: true,
+      });
+
+      await book.save();
+      const response = await request(server).get("/api/books");
+      expect(response.status).to.equal(200);
+      expect(response.body[0]).to.have.property("title", "1984");
+    });
+  });
 });
