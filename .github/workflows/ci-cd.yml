@@ -47,9 +47,7 @@ jobs:
         run: npm install
 
       - name: Deploy to Render
-        run: |
-          curl -fsSL https://render.com/deploy/scripts/deploy.sh | bash -s -- \
-            --api-key ${{ secrets.RENDER_API_KEY }} \
-            --service-id srv-d0b00madbo4c73c9gcs0
-        env:
-          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        uses: JorgeLNJunior/render-deploy@v1.4.5
+        with:
+          service_id: ${{ secrets.RENDER_ID }}
+          api_key: ${{ secrets.RENDER_API_KEY }}
