@@ -12,6 +12,8 @@ app.use(express.json());
 require("./startup/db")();
 require("./startup/routes")(app);
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+module.exports = server;
