@@ -12,13 +12,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      mongo:
-        image: mongo:latest
-        ports:
-          - 27017:27017
-        options: --health-cmd="mongo --eval 'db.runCommand({ connectionStatus: 1 })'" --health-interval=10s --health-timeout=5s --health-retries=3
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -26,13 +19,13 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install Dependencies
         run: npm install
 
       - name: Set MongoDB URI for Tests
-        run: echo "MONGO_URI=mongodb://localhost:27017/test" >> $GITHUB_ENV
+        run: echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> $GITHUB_ENV
 
       - name: Run Tests
         run: npm test
@@ -48,7 +41,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install Dependencies
         run: npm install
@@ -57,6 +50,6 @@ jobs:
         run: |
           curl -fsSL https://render.com/deploy/scripts/deploy.sh | bash -s -- \
             --api-key ${{ secrets.RENDER_API_KEY }} \
-            --service-id <your-render-service-id>
+            --service-id srv-d0b00madbo4c73c9gcs0
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
