@@ -3,27 +3,41 @@ import { useState } from "react";
 import useConversation from "../zustand/useConversation";
 import forgeRSAEncrypt from "../util/forgeRSAEncrypt";
 import { useSocketContext } from "../context/SocketContext";
+import { useAuthContext } from "../context/AuthContext";
 
 const useSendMessage = () => {
   const [loading, setLoading] = useState(false);
+  const { authUser } = useAuthContext();
   const { messages, setMessages, selectedConversation, publicKey } =
     useConversation();
-  const { socket } = useSocketContext(); // ✅ fixed destructuring
+  const { socket } = useSocketContext(); 
 
   const sendMessage = async (plaintextMessage) => {
     setLoading(true);
     try {
       const recipientId = selectedConversation._id;
+      const reciverPublicKey = publicKey;
 
-      if (!publicKey) {
+      console.log(reciverPublicKey)
+
+      if (!reciverPublicKey) {
         toast.error("Recipient public key not available.");
         return;
       }
 
-      const encryptedMessage = forgeRSAEncrypt(plaintextMessage, publicKey);
-      console.log("Encrypted message:", encryptedMessage);
+      const encryptedReciverMessage = forgeRSAEncrypt(
+        plaintextMessage,
+        reciverPublicKey
+      );
+      const encryptedSenderMessage = forgeRSAEncrypt(
+        plaintextMessage,
+        authUser.public_key
+      );
       socket.emit("send_message", {
-        message: encryptedMessage,
+        message: {
+          reciverMessage: encryptedReciverMessage,
+          senderMessage: encryptedSenderMessage,
+        },
         recipient_id: recipientId,
       });
       socket.once("receive_message", (msg) => {

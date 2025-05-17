@@ -4,17 +4,17 @@ import toast from "react-hot-toast";
 const useGetConversation = () => {
   const [loading, setLoading] = useState(false);
   const [conversations, setConversation] = useState([]);
-  const [error, setError] = useState(null); // New state for error
+  const [error, setError] = useState(null); 
 
   useEffect(() => {
     const controller = new AbortController();
 
     const getConversations = async () => {
       setLoading(true);
-      setError(null); // Reset error before making a new request
+      setError(null); 
       try {
         const res = await fetch("http://localhost:5000/users", {
-          credentials: "include", // Ensures cookies are sent with requests
+          credentials: "include", 
           signal: controller.signal,
         });
 
@@ -27,7 +27,7 @@ const useGetConversation = () => {
         setConversation(data);
       } catch (error) {
         if (error.name !== "AbortError") {
-          setError(error.message); // Set the error state
+          setError(error.message); 
           toast.error(error.message || "Something went wrong");
         }
       } finally {

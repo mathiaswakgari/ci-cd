@@ -3,14 +3,13 @@ import { useAuthContext } from "../context/AuthContext";
 import useConversation from "../zustand/useConversation.js";
 import { extractTime } from "../util/extractTime.js";
 const Message = ({ message }) => {
+  console.log(message);
   const { authUser } = useAuthContext();
   const { selectedConversation } = useConversation();
-  const fromMe = message.senderId === authUser._id;
+  const fromMe = message.sender_id === authUser.user_id;
   const formattedTime = extractTime(message.createdAt);
   const chatClassName = fromMe ? "chat-end" : "chat-start";
-  const profilePic = fromMe
-    ? authUser.profilePic
-    : selectedConversation?.profilePic;
+  const profilePic = fromMe ? authUser.avatar : selectedConversation?.image;
   const bubbleBgColor = fromMe ? "bg-blue-500" : "bg-gray-500";
   const shakeClass = message.shouldShake ? "shake" : "";
   return (
@@ -24,7 +23,7 @@ const Message = ({ message }) => {
         {message.message}
       </div>
       <div className="chat-footer opacity-50 text-xs flex gap-1 items-center">
-        {formattedTime}
+        {new Date(message.timestamp).toLocaleTimeString()}
       </div>
     </div>
   );

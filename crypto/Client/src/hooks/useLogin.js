@@ -26,6 +26,7 @@ const useLogin = () => {
       if (data.error) {
         throw new Error(data.error);
       }
+      console.log("Login response:", data);
       localStorage.setItem("user-info", JSON.stringify(data));
       setAuthUser(data);
     } catch (error) {

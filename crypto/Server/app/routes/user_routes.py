@@ -9,7 +9,7 @@ bp = Blueprint('user', __name__)
 
 
 @bp.route('/users', methods=['GET'])
-@cross_origin(supports_credentials=True)  # Allow CORS for this route
+@cross_origin(supports_credentials=True)  
 @login_required
 def get_users():
     all_users = users_collection.find(

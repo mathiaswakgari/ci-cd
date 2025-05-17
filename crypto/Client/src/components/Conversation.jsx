@@ -11,13 +11,10 @@ const Conversation = ({ conversation, lastIdx }) => {
 
   useEffect(() => {
     if (isSelected && conversation._id) {
-      // Fetch the public key when the conversation is selected
       const fetchPublicKey = async () => {
         try {
-          // Ensure the URL matches the backend route
           const response = await fetch(`http://localhost:5000/user/${conversation._id}/public-key`);
 
-          // Check if the response is ok (status 200-299)
           if (!response.ok) {
             throw new Error("Failed to fetch public key");
           }
@@ -25,7 +22,6 @@ const Conversation = ({ conversation, lastIdx }) => {
           console.log(data);
 
           if (data.public_key) {
-            // Save the public key in your store (Zustand or context)
             setPublicKey(data.public_key);
           } else {
             console.error("Public key not found.");

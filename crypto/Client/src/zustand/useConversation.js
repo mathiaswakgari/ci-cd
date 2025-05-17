@@ -5,10 +5,13 @@ const useConversation = create((set) => ({
   selectedConversation: null,
   setSelectedConversation: (selectedConversation) => set({ selectedConversation }),
   messages: [],
-  setMessages: (messages) => set({ messages }),
-  privateKey: null, // Add this
-  setPrivateKey: (privateKey) => set({ privateKey }), // And this
-  setPublicKey: (publicKey) => set({ publicKey }), // Add this
+   setMessages: (update) =>
+    set((state) => ({
+      messages: typeof update === "function" ? update(state.messages) : update,
+    })),
+  privateKey: null, 
+  setPrivateKey: (privateKey) => set({ privateKey }), 
+  setPublicKey: (publicKey) => set({ publicKey }), 
 }));
 
 export default useConversation;

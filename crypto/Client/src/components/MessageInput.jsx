@@ -11,7 +11,7 @@ const MessageInput = () => {
     e.preventDefault();
     if (!message) return;
     await sendMessage(message);
-    setMessage("");
+    setMessage([]);
   };
   return (
     <form className="px-4 my-3" onSubmit={handleSubmit}>

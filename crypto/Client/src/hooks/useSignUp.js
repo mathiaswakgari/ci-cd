@@ -6,21 +6,8 @@ const useSignUp = () => {
   const [loading, setLoading] = useState(false);
   const { setAuthUser } = useAuthContext();
 
-  const signup = async ({
-    fullname,
-    username,
-    password,
-    confirmPassword,
-    gender,
-  }) => {
-    const valid = handleInputError({
-      fullname,
-      username,
-      password,
-      confirmPassword,
-      gender,
-    });
-
+  const signup = async ({ fullname, username, password, confirmPassword, gender }) => {
+    const valid = handleInputError({ fullname, username, password, confirmPassword, gender });
     if (!valid) return false;
 
     setLoading(true);
@@ -29,30 +16,37 @@ const useSignUp = () => {
       const res = await fetch("http://localhost:5000/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullname,
-          username,
-          password,
-          confirmPassword,
-          gender,
-        }),
+        body: JSON.stringify({ fullname, username, password, confirmPassword, gender }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to register");
+        throw new Error(data.error || "Failed to register");
       }
 
-      const data = await res.json();
-      console.log("SERVER RESPONSE:", data);
+      const loginRes = await fetch("http://localhost:5000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",  
+        body: JSON.stringify({ username, password }),
+      });
 
-      localStorage.setItem("user-info", JSON.stringify(data));
-      setAuthUser(data);
+      const loginData = await loginRes.json();
 
-      toast.success("Registration successful!");
+      if (!loginRes.ok) {
+        throw new Error(loginData.error || "Auto-login failed");
+      }
+
+      localStorage.setItem("user-info", JSON.stringify(loginData));
+      setAuthUser(loginData);
+
+      toast.success("Registration and login successful!");
+      return true;
     } catch (error) {
       toast.error(error.message || "Something went wrong");
       console.error(error);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -61,13 +55,7 @@ const useSignUp = () => {
   return { loading, signup };
 };
 
-function handleInputError({
-  fullname,
-  username,
-  password,
-  confirmPassword,
-  gender,
-}) {
+function handleInputError({ fullname, username, password, confirmPassword, gender }) {
   if (!fullname || !username || !password || !confirmPassword || !gender) {
     toast.error("Please enter all fields");
     return false;
