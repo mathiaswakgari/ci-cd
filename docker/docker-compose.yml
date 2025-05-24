@@ -1,0 +1,46 @@
+networks:
+  app-network:
+    name: Network
+    driver: bridge
+
+services:
+  flask-app:
+    container_name: Flask
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    networks:
+      - app-network
+    restart: always
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      
+  redis:
+    container_name: Redis
+    image: redis:7
+    expose:
+      - 6379
+    ports:
+      - "6381:6379"
+    restart: always
+    networks:
+      - app-network
+
+  celery_worker:
+    container_name: Celery_Worker
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    networks:
+      - app-network
+    volumes:
+      - .:/app
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    command:
+      ["celery", "-A", "app.celery_app", "worker", "-l", "info", "-E"]
+
