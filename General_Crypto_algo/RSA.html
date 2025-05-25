@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSA Algorithm Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .input-section, .log-section {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #log {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            min-height: 200px;
+            white-space: pre-wrap;
+        }
+        dialog {
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        dialog::backdrop {
+            background: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <h1>RSA Algorithm Demo</h1>
+    <div class="container">
+        <div class="input-section">
+            <label for="message">Enter Message to Encrypt:</label>
+            <input type="text" id="message" placeholder="Type your message here">
+            <button onclick="startRSA()">Start RSA Process</button>
+        </div>
+        <div class="log-section">
+            <h3>Process Log</h3>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <dialog id="rsaDialog">
+        <h2>RSA Process</h2>
+        <p id="dialogMessage"></p>
+        <button onclick="closeDialog()">Close</button>
+    </dialog>
+
+    <script>
+        // Utility function to log messages
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.textContent += message + '\n';
+            logDiv.scrollTop = logDiv.scrollHeight; // Auto-scroll to bottom
+        }
+
+        // Dialog functions
+        function showDialog(message = '') {
+            const dialog = document.getElementById('rsaDialog');
+            document.getElementById('dialogMessage').textContent = message || 'Processing RSA...';
+            dialog.showModal();
+        }
+
+        function closeDialog() {
+            document.getElementById('rsaDialog').close();
+        }
+
+        // Promise-based delay for live logging
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Check if a number is prime
+        function isPrime(n) {
+            if (n < 2n) return false;
+            for (let i = 2n; i * i <= n; i++) {
+                if (n % BigInt(i) === 0n) return false;
+            }
+            return true;
+        }
+
+        // Generate a random prime number between min and max
+        function generatePrime(min, max) {
+            let num = BigInt(Math.floor(Math.random() * (Number(max) - Number(min) + 1)) + Number(min));
+            while (!isPrime(num)) {
+                num = BigInt(Math.floor(Math.random() * (Number(max) - Number(min) + 1)) + Number(min));
+            }
+            return num;
+        }
+
+        // Calculate GCD
+        function gcd(a, b) {
+            while (b !== 0n) {
+                let temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
+        }
+
+        // Modular multiplicative inverse
+        function modInverse(e, phi) {
+            let m0 = phi, t, q;
+            let x0 = 0n, x1 = 1n;
+            if (phi === 1n) return 0n;
+            while (e > 1n) {
+                q = e / phi;
+                t = phi;
+                phi = e % phi;
+                e = t;
+                t = x0;
+                x0 = x1 - q * x0;
+                x1 = t;
+            }
+            if (x1 < 0n) x1 += m0;
+            return x1;
+        }
+
+        // RSA Key Generation
+        function generateRSAKeys() {
+            const p = generatePrime(100n, 1000n);
+            const q = generatePrime(100n, 1000n);
+            const n = p * q;
+            const phi = (p - 1n) * (q - 1n);
+            let e = 65537n; // Common choice for e
+            while (gcd(e, phi) !== 1n) {
+                e += 2n;
+            }
+            const d = modInverse(e, phi);
+            return { publicKey: { e, n }, privateKey: { d, n }, p, q, phi };
+        }
+
+        // Encrypt message
+        function encrypt(message, publicKey) {
+            const { e, n } = publicKey;
+            let encrypted = [];
+            for (let i = 0; i < message.length; i++) {
+                const charCode = BigInt(message.charCodeAt(i));
+                encrypted.push(modPow(charCode, e, n));
+            }
+            return encrypted;
+        }
+
+        // Decrypt message
+        function decrypt(encrypted, privateKey) {
+            const { d, n } = privateKey;
+            let decrypted = '';
+            for (let num of encrypted) {
+                const charCode = modPow(num, d, n);
+                decrypted += String.fromCharCode(Number(charCode));
+            }
+            return decrypted;
+        }
+
+        // Modular exponentiation
+        function modPow(base, exponent, modulus) {
+            if (modulus === 1n) return 0n;
+            let result = 1n;
+            base = base % modulus;
+            while (exponent > 0n) {
+                if (exponent & 1n) result = (result * base) % modulus;
+                exponent = exponent >> 1n;
+                base = (base * base) % modulus;
+            }
+            return result;
+        }
+
+        // Main RSA process with live logging
+        async function startRSA() {
+            const message = document.getElementById('message').value;
+            if (!message) {
+                showDialog('Please enter a message to encrypt.');
+                return;
+            }
+
+            document.getElementById('log').textContent = ''; // Clear log
+            log('Starting RSA process...');
+            await delay(500); // Delay for visibility
+            log(`Original Message: ${message}`);
+            await delay(500);
+
+            // Generate keys
+            log('\nGenerating RSA keys...');
+            await delay(500);
+            const { publicKey, privateKey, p, q, phi } = generateRSAKeys();
+            log(`Prime p: ${p}`);
+            await delay(500);
+            log(`Prime q: ${q}`);
+            await delay(500);
+            log(`Modulus n: ${publicKey.n}`);
+            await delay(500);
+            log(`Totient phi: ${phi}`);
+            await delay(500);
+            log(`Public Key (e, n): (${publicKey.e}, ${publicKey.n})`);
+            await delay(500);
+            log(`Private Key (d, n): (${privateKey.d}, ${privateKey.n})`);
+            await delay(500);
+
+            // Encrypt
+            log('\nEncrypting message...');
+            await delay(500);
+            const encrypted = encrypt(message, publicKey);
+            log(`Encrypted (numeric): [${encrypted.join(', ')}]`);
+            showDialog(`Encrypted message (numeric): [${encrypted.join(', ')}]`);
+            await delay(1000);
+
+            // Decrypt
+            log('\nDecrypting message...');
+            await delay(500);
+            const decrypted = decrypt(encrypted, privateKey);
+            log(`Decrypted Message: ${decrypted}`);
+            showDialog(`Decrypted Message: ${decrypted}`);
+        }
+    </script>
+</body>
+</html>
