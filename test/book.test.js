@@ -28,7 +28,7 @@ describe("Book API", () => {
   });
 
   describe("POST /", () => {
-    it("should", async () => {
+    it("should save a book", async () => {
       const bookData = {
         title: "The Great Gatsby",
         author: "F. Scott Fitzgerald",
